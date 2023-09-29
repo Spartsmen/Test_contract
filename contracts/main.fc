@@ -1,5 +1,23 @@
 #include "imports/stdlib.fc";
 
-() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+() main(slice in_msg, slice in_msg_body) impure {
+    if (in_msg_body.slice_empty?()){
+        return ();
+    }
 
+    int msg_value = in_msg~load_uint(128);
+    slice sender_address = in_msg~load_msg_addr();
+    int send_amount = 10000;
+
+    cell message_body = begin_cell().store_uint(12, 8).end_cell();
+
+    cell msg = begin_cell()
+        .store_uint(0x18, 6) 
+        .store_slice(sender_address) 
+        .store_coins(send_amount) 
+        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) 
+        .store_ref(message_body) 
+    .end_cell();
+
+    send_raw_message(msg, 64);
 }
