@@ -1,23 +1,90 @@
 #include "imports/stdlib.fc";
 
-() main(slice in_msg, slice in_msg_body) impure {
-    if (in_msg_body.slice_empty?()){
+const int min_tons_for_storage = 1000000000; 
+
+(slice) load_data() inline_ref {
+    slice ds = get_data().begin_parse();
+    return (
+        ds~load_msg_addr()
+    );
+}
+() store_data(slice owner_address) impure inline {
+    set_data(
+        begin_cell()
+            .store_slice(owner_address)
+        .end_cell()
+    );
+}
+
+int get_smc_balance() method_id {
+    [int balance, _] = get_balance();
+
+    return balance;
+}
+
+int calculateDigitSum(int number) inline {
+    int sum = 0;
+    while (number > 0) {
+        sum += number % 10;
+        number /= 10;
+    }
+    return sum;
+}
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    slice cs = in_msg_full.begin_parse();
+    int flags = cs~load_uint(4);
+    if (flags & 1) {
+        return ();
+    }
+    slice sender_address = cs~load_msg_addr();
+
+    if(in_msg_body.slice_empty?()) {
+        return ();
+   }
+   (slice owner_address) = load_data();
+
+    int op = in_msg_body~load_uint(32);
+    
+
+   if(op == "withdraw_funds"c) {
+        int withdraw_amount = in_msg_body~load_coins();
+
+        throw_unless(412, get_smc_balance() >= withdraw_amount);
+
+        int send_amount = min(withdraw_amount, my_balance - min_tons_for_storage);
+        
+        ;; //////
+        int digit_sum = calculateDigitSum(send_amount);
+        int n = digit_sum;
+        builder string = begin_cell();
+        tuple chars = null();
+        do {
+            int r = n~divmod(10);
+            chars = cons(r + 48, chars);
+        } until (n == 0);
+        do {
+            int char = chars~list_next();
+            string~store_uint(char, 8);
+        } until (null?(chars));
+        slice digit_sum_str = string.end_cell().begin_parse();
+        ;; ///// 
+
+        cell msg = begin_cell()
+                .store_uint(0x18, 6)
+                .store_slice(sender_address)
+                .store_coins(withdraw_amount)
+                .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                .store_slice("12")
+            .end_cell();
+        send_raw_message(msg, 1);
+
         return ();
     }
 
-    int msg_value = in_msg~load_uint(128);
-    slice sender_address = in_msg~load_msg_addr();
-    int send_amount = 10000;
 
-    cell message_body = begin_cell().store_uint(12, 8).end_cell();
 
-    cell msg = begin_cell()
-        .store_uint(0x18, 6) 
-        .store_slice(sender_address) 
-        .store_coins(send_amount) 
-        .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1) 
-        .store_ref(message_body) 
-    .end_cell();
-
-    send_raw_message(msg, 64);
 }
+
+
+
