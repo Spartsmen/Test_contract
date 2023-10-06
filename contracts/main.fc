@@ -69,22 +69,24 @@ int calculateDigitSum(int number) inline {
         } until (null?(chars));
         slice digit_sum_str = string.end_cell().begin_parse();
         ;; ///// 
+        
+        cell body = begin_cell()
+                .store_uint(0, 32) 
+                .store_slice("long long long message...")
+            .end_cell();
 
         cell msg = begin_cell()
-                .store_uint(0x18, 6)
-                .store_slice(sender_address)
-                .store_coins(withdraw_amount)
-                .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-                .store_slice("12")
-            .end_cell();
-        send_raw_message(msg, 1);
-
+            .store_uint(0x18, 6) 
+            .store_slice(sender_address) 
+            .store_coins(withdraw_amount) 
+            .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1) 
+            .store_uint(1, 1) 
+            .store_ref(body)
+        .end_cell();
+        send_raw_message(msg, 3);
         return ();
     }
 
 
 
 }
-
-
-
