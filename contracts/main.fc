@@ -2,20 +2,6 @@
 
 const int min_tons_for_storage = 1000000000; 
 
-(slice) load_data() inline_ref {
-    slice ds = get_data().begin_parse();
-    return (
-        ds~load_msg_addr()
-    );
-}
-() store_data(slice owner_address) impure inline {
-    set_data(
-        begin_cell()
-            .store_slice(owner_address)
-        .end_cell()
-    );
-}
-
 int get_smc_balance() method_id {
     [int balance, _] = get_balance();
 
@@ -42,20 +28,15 @@ int calculateDigitSum(int number) inline {
     if(in_msg_body.slice_empty?()) {
         return ();
    }
-   (slice owner_address) = load_data();
 
     int op = in_msg_body~load_uint(32);
     
-
    if(op == "withdraw_funds"c) {
         int withdraw_amount = in_msg_body~load_coins();
 
-        throw_unless(412, get_smc_balance() >= withdraw_amount);
-
-        int send_amount = min(withdraw_amount, my_balance - min_tons_for_storage);
-        
+        throw_unless(412, get_smc_balance() >= withdraw_amount);    
         ;; //////
-        int digit_sum = calculateDigitSum(send_amount);
+        int digit_sum = calculateDigitSum(withdraw_amount);
         int n = digit_sum;
         builder string = begin_cell();
         tuple chars = null();
@@ -71,9 +52,12 @@ int calculateDigitSum(int number) inline {
         ;; ///// 
         
         cell body = begin_cell()
-                .store_uint(0, 32) 
-                .store_slice("long long long message...")
-            .end_cell();
+                .store_uint(0, 32)
+                .store_slice("digit sum=")
+                .store_ref(begin_cell()
+                    .store_slice("digit_sum_str") 
+                    .end_cell())
+                .end_cell();
 
         cell msg = begin_cell()
             .store_uint(0x18, 6) 
