@@ -1,14 +1,10 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core';
 import { Opcodes } from '../helpers/Opcodes';
 
-export type MainConfig = {
-    owner_address: Address;
-};
+export type MainConfig = {};
 
 export function mainConfigToCell(config: MainConfig): Cell {
-    return beginCell()
-        .storeAddress(config.owner_address)
-    .endCell();
+    return beginCell().endCell();
 }
 
 export class Main implements Contract {

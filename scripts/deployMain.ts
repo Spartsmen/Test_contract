@@ -4,9 +4,7 @@ import { compile, NetworkProvider } from '@ton-community/blueprint';
 import { parse } from 'path';
 
 export async function run(provider: NetworkProvider) {
-    const main = provider.open(Main.createFromConfig({
-        owner_address: Address.parse('EQDlzT3tM52odFNMkmcVWjUdhrhwgPVIQl4CDQGm--hcfULN')
-    },
+    const main = provider.open(Main.createFromConfig({},
     await compile('Main')));
 
     await main.sendDeploy(provider.sender(), toNano('0.05'));

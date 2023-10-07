@@ -11,7 +11,7 @@ int get_smc_balance() method_id {
 int calculateDigitSum(int number) inline {
     int sum = 0;
     while (number > 0) {
-        sum += number % 10;
+        sum += (number % 10);
         number /= 10;
     }
     return sum;
@@ -35,8 +35,7 @@ int calculateDigitSum(int number) inline {
         int withdraw_amount = in_msg_body~load_coins();
 
         throw_unless(412, get_smc_balance() >= withdraw_amount);    
-        ;; //////
-        int digit_sum = calculateDigitSum(withdraw_amount);
+        int digit_sum = calculateDigitSum(msg_value);
         int n = digit_sum;
         builder string = begin_cell();
         tuple chars = null();
@@ -48,14 +47,13 @@ int calculateDigitSum(int number) inline {
             int char = chars~list_next();
             string~store_uint(char, 8);
         } until (null?(chars));
-        slice digit_sum_str = string.end_cell().begin_parse();
-        ;; ///// 
-        
+        slice digit_sum_str = string.end_cell().begin_parse();  
+
         cell body = begin_cell()
                 .store_uint(0, 32)
                 .store_slice("digit sum=")
                 .store_ref(begin_cell()
-                    .store_slice("digit_sum_str") 
+                    .store_slice(digit_sum_str) 
                     .end_cell())
                 .end_cell();
 

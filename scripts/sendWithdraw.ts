@@ -13,7 +13,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const balanceBefore = await main.getBalance();
 
     await main.sendWithdraw(provider.sender(), {
-        amount: toNano('0.03'),
+        amount: toNano('0.01'),
         value: toNano(amount)
     });
 
